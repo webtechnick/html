@@ -737,7 +737,7 @@ class FormBuilder
      */
     public function getSelectOption($display, $value, $selected, array $attributes = [], array $optgroupAttributes = [])
     {
-        if (is_array($display)) {
+        if (is_iterable($display)) {
             return $this->optionGroup($display, $value, $selected, $optgroupAttributes, $attributes);
         }
 
@@ -762,7 +762,7 @@ class FormBuilder
         $space = str_repeat("&nbsp;", $level);
         foreach ($list as $value => $display) {
             $optionAttributes = $optionsAttributes[$value] ?? [];
-            if (is_array($display)) {
+            if (is_iterable($display)) {
                 $html[] = $this->optionGroup($display, $value, $selected, $attributes, $optionAttributes, $level+5);
             } else {
                 $html[] = $this->option($space.$display, $value, $selected, $optionAttributes);
@@ -1085,6 +1085,50 @@ class FormBuilder
         }
 
         return $this->toHtmlString('<button' . $this->html->attributes($options) . '>' . $value . '</button>');
+    }
+
+    /**
+     * Create a datalist box field.
+     *
+     * @param  string $id
+     * @param  array  $list
+     *
+     * @return \Illuminate\Support\HtmlString
+     */
+    public function datalist($id, $list = [])
+    {
+        $this->type = 'datalist';
+
+        $attributes['id'] = $id;
+
+        $html = [];
+
+        if ($this->isAssociativeArray($list)) {
+            foreach ($list as $value => $display) {
+                $html[] = $this->option($display, $value, null, []);
+            }
+        } else {
+            foreach ($list as $value) {
+                $html[] = $this->option($value, $value, null, []);
+            }
+        }
+
+        $attributes = $this->html->attributes($attributes);
+
+        $list = implode('', $html);
+
+        return $this->toHtmlString("<datalist{$attributes}>{$list}</datalist>");
+    }
+
+    /**
+     * Determine if an array is associative.
+     *
+     * @param  array $array
+     * @return bool
+     */
+    protected function isAssociativeArray($array)
+    {
+        return (array_values($array) !== $array);
     }
 
     /**

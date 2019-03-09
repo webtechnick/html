@@ -537,6 +537,58 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
         );
         $this->assertEquals($select,
             '<select name="size"><option value="L" data-foo="bar" disabled>Large</option><option value="S">Small</option></select>');
+
+        $select = $this->formBuilder->select(
+            'size',
+            collect([
+                'Large sizes' => collect([
+                    'L' => 'Large',
+                    'XL' => 'Extra Large',
+                ]),
+                'S' => 'Small',
+            ]),
+            null,
+            [
+                'class' => 'class-name',
+                'id' => 'select-id',
+            ]
+        );
+
+        $this->assertEquals(
+            $select,
+            '<select class="class-name" id="select-id" name="size"><optgroup label="Large sizes"><option value="L">Large</option><option value="XL">Extra Large</option></optgroup><option value="S">Small</option></select>'
+        );
+
+        $select = $this->formBuilder->select(
+            'size',
+            collect([
+                'Large sizes' => collect([
+                    'L' => 'Large',
+                    'XL' => 'Extra Large',
+                ]),
+                'M' => 'Medium',
+                'Small sizes' => collect([
+                    'S' => 'Small',
+                    'XS' => 'Extra Small',
+                ]),
+            ]),
+            null,
+            [],
+            [
+                'Large sizes' => [
+                    'L' => ['disabled']
+                ],
+                'M' => ['disabled'],
+            ],
+            [
+                'Small sizes' => ['disabled'],
+            ]
+        );
+
+        $this->assertEquals(
+            $select,
+            '<select name="size"><optgroup label="Large sizes"><option value="L" disabled>Large</option><option value="XL">Extra Large</option></optgroup><option value="M" disabled>Medium</option><optgroup label="Small sizes" disabled><option value="S">Small</option><option value="XS">Extra Small</option></optgroup></select>'
+        );
     }
 
     public function testFormSelectRepopulation()
@@ -781,6 +833,24 @@ class FormBuilderTest extends PHPUnit\Framework\TestCase
         $this->assertEquals('<input name="foo" type="color">', $form1);
         $this->assertEquals('<input name="foo" type="color" value="#ff0000">', $form2);
         $this->assertEquals('<input class="span2" name="foo" type="color">', $form3);
+    }
+
+    public function testDatalist()
+    {
+        // Associative array with string keys.
+        $genders = ['M' => 'Male', 'F' => 'Female'];
+        $datalist = $this->formBuilder->datalist('genders', $genders);
+        $this->assertEquals('<datalist id="genders"><option value="M">Male</option><option value="F">Female</option></datalist>', $datalist);
+
+        // Associative array with numeric Keys
+        $genders = [5 => 'Male', 6 => 'Female'];
+        $datalist = $this->formBuilder->datalist('genders', $genders);
+        $this->assertEquals('<datalist id="genders"><option value="5">Male</option><option value="6">Female</option></datalist>', $datalist);
+
+        // Not associative array.
+        $genders = ['Male', 'Female'];
+        $datalist = $this->formBuilder->datalist('genders', $genders);
+        $this->assertEquals('<datalist id="genders"><option value="Male">Male</option><option value="Female">Female</option></datalist>', $datalist);
     }
 
     public function testBooleanAttributes()
